@@ -1,0 +1,86 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "name": "Access and Load Raw Metadata",
+      "description": "Connect to the S3 bucket using the provided path and region, then load the `metadata.parquet` files. The output of this task should be the raw tabular data containing all necessary columns for subsequent analysis. Prioritize loading only the columns relevant for the downstream tasks to optimize memory and performance.",
+      "information_needed": {
+        "s3_url_pattern": "s3://indian-high-court-judgments/metadata/parquet/year=*/court=*/bench=*/metadata.parquet",
+        "s3_region": "ap-south-1",
+        "example_duckdb_query_for_access": "INSTALL httpfs; LOAD httpfs; INSTALL parquet; LOAD parquet; SELECT COUNT(*) FROM read_parquet('s3://indian-high-court-judgments/metadata/parquet/year=*/court=*/bench=*/metadata.parquet?s3_region=ap-south-1');",
+        "required_columns_to_load": [
+          "court",
+          "decision_date",
+          "date_of_registration",
+          "disposal_nature",
+          "year"
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "name": "Preprocess Metadata Dates",
+      "description": "Convert the `decision_date` and `date_of_registration` columns from their string/object types to proper datetime objects. The `date_of_registration` column is in 'DD-MM-YYYY' string format and `decision_date` is expected to be in 'YYYY-MM-DD' format (as per its `DATE` type description in the schema). This step is crucial for accurate date calculations in subsequent tasks.",
+      "information_needed": {
+        "columns_to_preprocess": [
+          "decision_date",
+          "date_of_registration"
+        ],
+        "date_of_registration_format": "DD-MM-YYYY",
+        "decision_date_format_expected": "YYYY-MM-DD"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Identify High Court with Most Disposed Cases (2019-2022)",
+      "description": "Filter the preprocessed data to include only records where the `decision_date` falls within the years 2019 to 2022 (inclusive). After filtering, group the data by the `court` column and count the number of cases (rows) for each court. The output should be the name of the high court that has disposed of the highest number of cases within this specified period. This task answers the question: 'Which high court disposed the most cases from 2019 - 2022?'",
+      "information_needed": {
+        "date_range_for_filtering": {
+          "start_date": "2019-01-01",
+          "end_date": "2022-12-31"
+        },
+        "column_for_grouping_and_identification": "court",
+        "column_for_counting": "disposal_nature"
+      }
+    },
+    {
+      "id": 4,
+      "name": "Calculate Case Processing Delay for Court '33_10'",
+      "description": "Filter the preprocessed dataset to include only records where the `court` column is '33_10'. For these filtered cases, calculate the 'delay' for each record as the difference in days between `decision_date` and `date_of_registration`. Ensure the result is in a numerical format (e.g., integer days).",
+      "information_needed": {
+        "filtering_criteria": {
+          "column": "court",
+          "value": "33_10"
+        },
+        "columns_for_delay_calculation": [
+          "decision_date",
+          "date_of_registration"
+        ],
+        "output_column_name": "delay",
+        "delay_unit": "days"
+      }
+    },
+    {
+      "id": 5,
+      "name": "Compute Regression Slope of Delay by Year for Court '33_10'",
+      "description": "Using the data from Task 4 (filtered for court '33_10' with 'delay' calculated), perform a linear regression analysis. The independent variable for this regression should be the `year` (which is already available as a column in the dataset, or can be extracted from `decision_date`), and the dependent variable should be the calculated `delay`. The output of this task is the regression slope. This task answers the question: 'What's the regression slope of the date_of_registration - decision_date by year in the court=33_10?'",
+      "information_needed": {
+        "independent_variable_for_regression": "year",
+        "dependent_variable_for_regression": "delay"
+      }
+    },
+    {
+      "id": 6,
+      "name": "Generate and Encode Scatterplot of Delay vs. Year with Regression Line",
+      "description": "Create a scatterplot visualization. The X-axis should represent `year` and the Y-axis should represent `delay` (using the data from Task 4, which is filtered for court '33_10'). Overlay a linear regression line on this scatterplot, reflecting the relationship identified in Task 5. The final output of this task must be the generated plot encoded as a base64 data URI, specifically using the `image/webp` format, and its size must be strictly under 100,000 characters. This task answers the question: 'Plot the year and # of days of delay from the above question as a scatterplot with a regression line. Encode as a base64 data URI under 100,000 characters'",
+      "information_needed": {
+        "x_axis_data_column": "year",
+        "y_axis_data_column": "delay",
+        "plot_type": "scatterplot_with_regression_line",
+        "output_format": "base64_data_uri",
+        "mime_type": "image/webp",
+        "size_constraint_characters": 100000
+      }
+    }
+  ]
+}

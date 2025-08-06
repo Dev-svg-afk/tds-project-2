@@ -1,0 +1,103 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "name": "Load and Prepare Metadata for Analysis",
+      "description": "Load the structured metadata (parquet files) from the Indian High Court Judgments dataset from the specified S3 path. Ensure that 'date_of_registration' and 'decision_date' columns are parsed into datetime objects for accurate date calculations. This step should make the data ready for subsequent analytical tasks.",
+      "information_needed": {
+        "data_source_type": "s3_parquet",
+        "s3_path": "s3://indian-high-court-judgments/metadata/parquet/year=*/court=*/bench=*/metadata.parquet?s3_region=ap-south-1",
+        "duckdb_commands": [
+          "INSTALL httpfs;",
+          "LOAD httpfs;",
+          "INSTALL parquet;",
+          "LOAD parquet;"
+        ],
+        "columns_to_parse_as_datetime": [
+          "date_of_registration",
+          "decision_date"
+        ],
+        "schema_details": {
+          "court_code": "VARCHAR",
+          "title": "VARCHAR",
+          "description": "VARCHAR",
+          "judge": "VARCHAR",
+          "pdf_link": "VARCHAR",
+          "cnr": "VARCHAR",
+          "date_of_registration": "VARCHAR (to be parsed as DATE)",
+          "decision_date": "DATE (to be parsed as DATE)",
+          "disposal_nature": "VARCHAR",
+          "court": "VARCHAR",
+          "raw_html": "VARCHAR",
+          "bench": "VARCHAR",
+          "year": "BIGINT"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "name": "Identify High Court with Most Disposals (2019-2022)",
+      "description": "Filter the dataset obtained from Task 1 to include only judgments with a 'decision_date' between January 1, 2019, and December 31, 2022, inclusive. Group the filtered data by the 'court' column and count the number of cases (judgments) for each court. Finally, identify the 'court' that has the highest number of disposed cases within this period.",
+      "information_needed": {
+        "data_source_task_id": 1,
+        "filter_column": "decision_date",
+        "start_date": "2019-01-01",
+        "end_date": "2022-12-31",
+        "group_by_column": "court",
+        "aggregation_type": "count",
+        "output_metric": "Court with highest count"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Calculate Case Delay for Court '33_10'",
+      "description": "Filter the dataset from Task 1 to include only judgments from the court identified as '33_10'. For each of these cases, calculate the 'delay_days' by finding the difference in days between the 'decision_date' and the 'date_of_registration'. This calculation should result in a positive integer representing the number of days taken.",
+      "information_needed": {
+        "data_source_task_id": 1,
+        "filter_column": "court",
+        "filter_value": "33_10",
+        "start_date_column": "date_of_registration",
+        "end_date_column": "decision_date",
+        "calculation_type": "date_difference_in_days",
+        "new_column_name": "delay_days"
+      }
+    },
+    {
+      "id": 4,
+      "name": "Calculate Regression Slope of Delay by Year for Court '33_10'",
+      "description": "Using the dataset prepared in Task 3, calculate the linear regression slope. The 'delay_days' (calculated delay) should be the dependent variable, and 'year' (extracted from 'decision_date' or used directly from the 'year' column) should be the independent variable. This slope will indicate the trend of case delays over time for court '33_10'.",
+      "information_needed": {
+        "data_source_task_id": 3,
+        "independent_variable_column": "year",
+        "dependent_variable_column": "delay_days",
+        "regression_type": "linear_regression",
+        "output_metric": "regression_slope"
+      }
+    },
+    {
+      "id": 5,
+      "name": "Generate Scatterplot with Regression Line for Court '33_10' Delays",
+      "description": "Create a scatterplot using the data from Task 3. The 'year' should be plotted on the x-axis, and the calculated 'delay_days' should be on the y-axis. Overlay a linear regression line on this scatterplot to visually represent the trend of case delays over the years for court '33_10'. The plot should include appropriate labels and title.",
+      "information_needed": {
+        "data_source_task_id": 3,
+        "plot_type": "scatterplot_with_regression_line",
+        "x_axis_column": "year",
+        "y_axis_column": "delay_days",
+        "plot_title": "Case Delay vs. Year for Court 33_10",
+        "x_axis_label": "Year",
+        "y_axis_label": "Days of Delay"
+      }
+    },
+    {
+      "id": 6,
+      "name": "Encode Plot to Base64 Data URI",
+      "description": "Convert the plot generated in Task 5 into a base64 encoded data URI. The image format should be 'webp', and the resulting URI string must be less than 100,000 characters in length. This encoded string will be directly embeddable.",
+      "information_needed": {
+        "plot_source_task_id": 5,
+        "output_format": "image/webp",
+        "max_uri_length_characters": 100000,
+        "uri_prefix": "data:image/webp:base64,"
+      }
+    }
+  ]
+}

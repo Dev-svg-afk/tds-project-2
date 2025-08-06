@@ -1,0 +1,16 @@
+Write python code for the following.
+Just write the python code, do not include comments or explanations of any sort.
+Include uv script in the beginning of the code in the following format.
+example: 
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#   "dependency1",
+#   "dependency1",
+#   "dependency1",
+# ]
+# ///
+Do not make up data, stick true to the data source.
+Strictly follow "important_info".
+Save the result in the file "result{id}.{relevant extension}"
+Save the metadata of the data stored in result{id} into the file "metadata.{relevant extension}"

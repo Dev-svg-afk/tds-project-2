@@ -1,0 +1,50 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "name": "Scrape Data from Wikipedia",
+      "description": "Scrape the list of highest grossing films from the provided Wikipedia URL. The output should be the raw tabular data.",
+      "information_needed": {
+        "url": "https://en.wikipedia.org/wiki/List_of_highest-grossing_films"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Preprocess Scraped Data",
+      "description": "Clean and transform the raw tabular data obtained from scraping. This includes parsing numerical values (e.g., gross, rank, peak), converting release years to integers, and handling any missing or inconsistent data to prepare it for analysis. The output should be a structured dataset (e.g., a pandas DataFrame) with appropriate data types for 'Gross', 'Release Year', 'Rank', and 'Peak' (which refers to Peak position).",
+      "information_needed": {}
+    },
+    {
+      "id": 3,
+      "name": "Count Films Meeting Specific Criteria",
+      "description": "From the preprocessed data, count how many films grossed $2 billion or more and were released before the year 2020. The output should be a single integer.",
+      "information_needed": {}
+    },
+    {
+      "id": 4,
+      "name": "Identify Earliest Film by Gross Threshold",
+      "description": "From the preprocessed data, identify the earliest film (based on release year) that grossed over $1.5 billion. The output should be the name of the film.",
+      "information_needed": {}
+    },
+    {
+      "id": 5,
+      "name": "Calculate Correlation between Rank and Peak",
+      "description": "From the preprocessed data, calculate the Pearson correlation coefficient between the 'Rank' and 'Peak' (Peak position) columns. The output should be a single float value.",
+      "information_needed": {}
+    },
+    {
+      "id": 6,
+      "name": "Generate and Encode Scatterplot",
+      "description": "Generate a scatterplot using 'Rank' and 'Peak' (Peak position) from the preprocessed data. Include a dotted red regression line through the scatterplot. Encode the generated plot as a base-64 data URI (PNG format). Ensure the resulting data URI is under 100,000 bytes.",
+      "information_needed": {
+        "output_format": "data:image/png;base64,..."
+      }
+    },
+    {
+      "id": 7,
+      "name": "Assemble Final Output",
+      "description": "Collect the answers from Task 3 (count), Task 4 (film name), Task 5 (correlation), and Task 6 (base-64 image string). Present these as a JSON array of strings, where each element corresponds to an answer in order.",
+      "information_needed": {}
+    }
+  ]
+}

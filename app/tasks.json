@@ -1,0 +1,53 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "name": "Scrape Data from Wikipedia",
+      "description": "Scrape the list of highest grossing films from the provided Wikipedia URL. The output should be the raw tabular data, preferably in a structured format such as a list of lists or a pandas DataFrame.",
+      "important_info": {
+        "url": "https://en.wikipedia.org/wiki/List_of_highest-grossing_films"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Preprocess Scraped Data",
+      "description": "Clean and transform the raw tabular data obtained from scraping. This includes parsing numerical values for 'Worldwide gross' (e.g., converting 'billion' and 'million' notations to a consistent numerical format like USD), converting 'Year' (release year) to integers, and ensuring 'Rank' and 'Peak' are numeric. Handle any missing or inconsistent data. The output should be a structured dataset (e.g., a pandas DataFrame) with appropriate data types for 'Worldwide gross', 'Year', 'Rank', and 'Peak'.",
+      "information_needed": {}
+    },
+    {
+      "id": 3,
+      "name": "Calculate Count of High-Grossing Films Before 2020",
+      "description": "Using the preprocessed data, count the number of films that have a 'Worldwide gross' equal to or greater than $2 billion (2,000,000,000 USD) and were released before the year 2020. The output should be a single integer.",
+      "information_needed": {}
+    },
+    {
+      "id": 4,
+      "name": "Find Earliest High-Grossing Film",
+      "description": "Using the preprocessed data, identify the film (by its 'Film' name) that has a 'Worldwide gross' equal to or greater than $1.5 billion (1,500,000,000 USD) and has the earliest 'Year' of release. If multiple films meet the criteria with the same earliest year, any one of their names is acceptable. The output should be a string representing the film's title.",
+      "information_needed": {}
+    },
+    {
+      "id": 5,
+      "name": "Calculate Correlation between Rank and Peak",
+      "description": "Using the preprocessed data, calculate the Pearson correlation coefficient between the 'Rank' column and the 'Peak' column. The output should be a single float value.",
+      "information_needed": {}
+    },
+    {
+      "id": 6,
+      "name": "Generate Scatterplot with Regression Line",
+      "description": "Create a scatterplot where 'Rank' is on one axis and 'Peak' is on the other. Overlay a dotted red regression line through the data points. The resulting plot image must be returned as a base-64 encoded data URI in PNG format (e.g., `data:image/png;base64,...`) and its size must be under 100,000 bytes. Ensure appropriate axis labels are present.",
+      "information_needed": {}
+    },
+    {
+      "id": 7,
+      "name": "Format Final Answers",
+      "description": "Combine the results from Task 3, Task 4, Task 5, and Task 6 into a JSON array of strings. The order of elements in the array should correspond to the original question order: the count from Task 3 (as a string), the film name from Task 4 (as a string), the correlation value from Task 5 (as a string), and the base-64 encoded image string from Task 6. For numeric values, ensure they are converted to strings.",
+      "information_needed": {
+        "answer_q1": "Result from Task 3 (integer)",
+        "answer_q2": "Result from Task 4 (string)",
+        "answer_q3": "Result from Task 5 (float)",
+        "answer_q4_image": "Result from Task 6 (base-64 encoded image string)"
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+The code you have been given has already been run. It has created a file.
+Your task is to write a new python code to extract the metadata of that file.
+Just write the python code, do not include comments or explanations of any sort.
+Include any necessary libraries as uv script in the beginning of the code in the following format.
+example: 
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#   "dependency1",
+#   "dependency1",
+#   "dependency1",
+# ]
+# ///
+Do not make up data, stick true to the data source.
+In the end, the code must save the data into a file called "metadata.{relevant extention}"
