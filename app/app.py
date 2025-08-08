@@ -27,7 +27,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import google.generativeai as genai
 
-from pipelines_utils import break_tasks,write_code,execute_code,debug_code,get_metadata,write_first_code,debug_first_code,modify_task,debug_new
+from pipelines_utils import break_tasks,write_code,execute_code,debug_code,get_metadata,modify_task,debug_new,explain_error
 
 load_dotenv()
 
@@ -59,34 +59,102 @@ async def hunt():
         raise HTTPException(status_code=404, detail="tasks.json not found.")
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="Error decoding tasks.json.")
-
-    # with open("modified_task.json", "r", encoding="utf-8") as f:
-    #     task = json.load(f)
+        
 
     all_metadata = {}
 
     for task in tasks["tasks"]:
 
-        if task["id"]>1:
+        if task["files_for_reference"]:
 
             metadata = [
                 {key: value}
                 for key, value in all_metadata.items()
                 if key in task["files_for_reference"]
             ]
+            
+            task["files_for_reference"] = [
+                key
+                for x in metadata
+                for key, value in x.items()
+                if value != "file does not exist"
+            ]
 
             task["description"] = await modify_task(task["description"], metadata)
+        
+        else:
+            metadata = []
 
-        response = await write_code(task, all_metadata)
+        response = await write_code(task, metadata)
+
         response = await execute_code(f"codes/task{task['id']}/code0.py")
 
         if "error" in response:
             i = 0
+            with open(f"codes/task{task['id']}/error{i}.txt", "w", encoding="utf-8") as error_file:
+                error_file.write(response["stderr"])  # FOR TESTING PURPOSES ONLY
             while "error" in response and i < 2:
                 i += 1
-                # response = await debug_new(task,f"codes/task{task['id']}/code{i-1}.py", response["stderr"],i)
-                response = await debug_code(task, all_metadata, f"codes/task{task['id']}/code{i-1}.py", response["stderr"], i)
+                response = await debug_code(task, f"codes/task{task['id']}/code{i-1}.py", response["stderr"], i, metadata)
                 response = await execute_code(f"codes/task{task['id']}/code{i}.py")
+                with open(f"codes/task{task['id']}/error{i}.txt", "w", encoding="utf-8") as error_file:
+                    error_file.write(response["stderr"])  # FOR TESTING PURPOSES ONLY
+                return "not sure this is helping"
+
+        if task["output_file_name"]:
+            metadata = await get_metadata(task["output_file_name"])
+            if metadata == "file does not exist":       # FOR TESTING PURPOSES ONLY
+                return {f"{metadata} at task {task['id']}"} # FOR TESTING PURPOSES ONLY
+            all_metadata[task["output_file_name"]] = metadata
+
+    return {
+        "message": "All tasks processed successfully."
+    }
+
+    all_metadata = {}
+
+    for task in tasks["tasks"]:
+
+        if task["files_for_reference"]:
+
+            metadata = [
+                {key: value}
+                for key, value in all_metadata.items()
+                if key in task["files_for_reference"]
+            ]
+            
+            task["files_for_reference"] = [
+                key
+                for x in metadata
+                for key, value in x.items()
+                if value != "file does not exist"
+            ]
+
+            # task["description"] = await modify_task(task["description"], metadata)  # enable after testing
+
+        if task["output_file_name"]:    # FOR TESTING PURPOSES ONLY
+            metadata = await get_metadata(task["output_file_name"]) # FOR TESTING PURPOSES ONLY
+            all_metadata[task["output_file_name"]] = metadata   # FOR TESTING PURPOSES ONLY
+
+        if task["id"]<7:
+                continue        # FOR TESTING PURPOSES ONLY
+
+        response = await write_code(task, metadata)
+
+        return
+
+        response = await execute_code(f"codes/task{task['id']}/code0.py")
+
+        if "error" in response:
+            i = 0
+            with open(f"codes/task{task['id']}/error{i}.txt", "w", encoding="utf-8") as error_file:
+                error_file.write(response["stderr"])  # FOR TESTING PURPOSES ONLY
+            while "error" in response and i < 2:
+                i += 1
+                response = await debug_code(task, metadata, f"codes/task{task['id']}/code{i-1}.py", response["stderr"], i)
+                response = await execute_code(f"codes/task{task['id']}/code{i}.py")
+                with open(f"codes/task{task['id']}/error{i}.txt", "w", encoding="utf-8") as error_file:
+                    error_file.write(response["stderr"])  # FOR TESTING PURPOSES ONLY
 
         if task["output_file_name"]:
             metadata = await get_metadata(task["output_file_name"])
@@ -96,53 +164,15 @@ async def hunt():
         "message": "All tasks processed successfully."
     }
 
-    all_metadata = {}
-
-    task = tasks["tasks"][0]
-
-    if task["output_file_name"]:
-        metadata = await get_metadata(task["output_file_name"])
-        if metadata == "caution: file does not exist":
-            return metadata
-        all_metadata[task["output_file_name"]] = metadata
-
-    task = tasks["tasks"][1]
-
-    response = await write_code(task, all_metadata)
-    response = await execute_code(f"codes/task{task['id']}/code0.py")
-
-    if "error" in response:
-        i = 0
-        with open(f"codes/task{task['id']}/error{i}.txt", "w", encoding="utf-8") as error_file:
-            error_file.write(response["stderr"])
-        while "error" in response and i < 2:
-            i += 1
-            # response = await debug_new(task,f"codes/task{task['id']}/code{i-1}.py", response["stderr"],i)
-            response = await debug_code(task, all_metadata, f"codes/task{task['id']}/code{i-1}.py", response["stderr"], i)
-            response = await execute_code(f"codes/task{task['id']}/code{i}.py")
-            with open(f"codes/task{task['id']}/error{i}.txt", "w", encoding="utf-8") as error_file:
-                error_file.write(response["stderr"])
-
-
-    if task["output_file_name"]:
-        metadata = await get_metadata(task["output_file_name"])
-        if metadata == "caution: file does not exist":
-            return metadata
-        all_metadata[task["output_file_name"]] = metadata
-
-    return all_metadata
-
 # API Endpoints
 
 @app.get("/")
 async def root():
-    if not genai:
-        raise HTTPException(status_code=500, detail="Gemini client not initialized.")
-    return {"message": "Welcome to the Gemini FastAPI Server!"}
+    return {"Server": "Healthy"}
 
 @app.post("/api")
 async def api(file: UploadFile = File(...)):
-    # response = await break_tasks(file)
+    await break_tasks(file)
     response = await hunt()
     return response
 

@@ -3,7 +3,7 @@
     {
       "id": 1,
       "name": "Scrape Data from Wikipedia",
-      "description": "Scrape the list of highest grossing films from the provided Wikipedia URL. The output should be the raw tabular data, preserving all columns and values as found on the page.",
+      "description": "Scrape the list of highest grossing films from the provided Wikipedia URL. The output should be the raw tabular data, preferably in CSV format.",
       "information_needed": {
         "url": "https://en.wikipedia.org/wiki/List_of_highest-grossing_films"
       },
@@ -13,66 +13,74 @@
     {
       "id": 2,
       "name": "Preprocess Scraped Data",
-      "description": "Clean and transform the raw tabular data obtained from scraping. This involves: 1) Parsing 'Gross' values into a consistent numeric format (e.g., USD in billions or millions, ensure it's a number). 2) Extracting and converting 'Release Year' into an integer. 3) Converting 'Rank' and 'Peak' columns into integer types. Handle any non-numeric characters, missing values, or inconsistencies to ensure data is ready for numerical analysis and filtering.",
+      "description": "Clean and transform the raw tabular data obtained from scraping. This includes parsing numerical values (e.g., Gross, converting '$' and 'billion/million' to pure numbers), converting release years to integers, and handling any missing or inconsistent data. The output should be a structured dataset (e.g., a pandas DataFrame) with appropriate data types for 'Gross' (float), 'Release Year' (integer), 'Rank' (integer), and 'Peak' (integer, referring to Peak position).",
       "information_needed": {},
       "files_for_reference": ["highest_grossing_films_raw.csv"],
       "output_file_name": "highest_grossing_films_processed.csv"
     },
     {
       "id": 3,
-      "name": "Answer Question 1: Count $2B+ movies before 2020",
-      "description": "From the processed data, count the number of movies that have a gross revenue of $2 billion or more AND were released before the year 2020. Return this count as an integer.",
-      "information_needed": {},
+      "name": "Calculate Count of $2 Billion Movies Before 2020",
+      "description": "Filter the processed film data to identify movies that grossed $2,000,000,000 (or 2 billion) or more AND were released before the year 2020. Count the number of such movies. The output should be a single integer.",
+      "information_needed": {
+        "gross_threshold": "2,000,000,000",
+        "release_year_before": "2020"
+      },
       "files_for_reference": ["highest_grossing_films_processed.csv"],
-      "output_file_name": "result_q1_count.txt"
+      "output_file_name": "q1_2bn_movies_before_2020.txt"
     },
     {
       "id": 4,
-      "name": "Answer Question 2: Earliest $1.5B+ film",
-      "description": "From the processed data, identify the film with the earliest 'Release Year' that has a gross revenue of $1.5 billion or more. Return the exact name of this film.",
-      "information_needed": {},
+      "name": "Find Earliest Film Grossing Over $1.5 Billion",
+      "description": "Identify the film that grossed over $1,500,000,000 (or 1.5 billion) and has the earliest release year. Return the title of this film. If multiple films share the earliest year and meet the criteria, any one of them is acceptable.",
+      "information_needed": {
+        "gross_threshold": "1,500,000,000"
+      },
       "files_for_reference": ["highest_grossing_films_processed.csv"],
-      "output_file_name": "result_q2_film_name.txt"
+      "output_file_name": "q2_earliest_1_5bn_film_title.txt"
     },
     {
       "id": 5,
-      "name": "Answer Question 3: Correlation between Rank and Peak",
-      "description": "From the processed data, calculate the Pearson correlation coefficient between the 'Rank' and 'Peak' columns. Return the correlation value as a float.",
-      "information_needed": {},
+      "name": "Calculate Correlation Between Rank and Peak",
+      "description": "Calculate the Pearson correlation coefficient between the 'Rank' and 'Peak' columns of the processed film data. The output should be a single float.",
+      "information_needed": {
+        "column_1": "Rank",
+        "column_2": "Peak",
+        "correlation_type": "Pearson"
+      },
       "files_for_reference": ["highest_grossing_films_processed.csv"],
-      "output_file_name": "result_q3_correlation.txt"
+      "output_file_name": "q3_rank_peak_correlation.txt"
     },
     {
       "id": 6,
-      "name": "Answer Question 4: Generate Rank vs Peak scatterplot with regression line",
-      "description": "Create a scatterplot using 'Rank' on the x-axis and 'Peak' on the y-axis from the processed data. Overlay a dotted red regression line on this scatterplot. The plot must be generated as a PNG image and then encoded as a base-64 data URI (e.g., 'data:image/png;base64,...'). The total size of the encoded data URI string must be under 100,000 bytes.",
+      "name": "Generate Scatterplot with Regression Line",
+      "description": "Create a scatterplot using 'Rank' and 'Peak' from the processed data. Overlay a linear regression line on this scatterplot. The regression line must be 'dotted' and 'red'. The plot should be generated as a PNG image and then encoded into a base-64 data URI string. Ensure the final base-64 string is under 100,000 bytes.",
       "information_needed": {
-        "plot_type": "scatterplot",
         "x_axis_column": "Rank",
         "y_axis_column": "Peak",
         "regression_line_style": "dotted",
         "regression_line_color": "red",
         "output_format": "base-64 encoded PNG data URI",
-        "max_size_bytes": 100000
+        "size_constraint_bytes": 100000
       },
       "files_for_reference": ["highest_grossing_films_processed.csv"],
-      "output_file_name": "result_q4_plot_base64.txt"
+      "output_file_name": "q4_scatterplot_image_data_uri.txt"
     },
     {
       "id": 7,
       "name": "Format Final Answers",
-      "description": "Combine the results from Task 3, Task 4, Task 5, and Task 6 into a JSON array of strings. The order of elements in the array should strictly correspond to the original question order: the count from Task 3 (as a string), the film name from Task 4 (as a string), the correlation value from Task 5 (as a string), and the base-64 encoded image string from Task 6. Ensure all values, including numbers, are converted to strings before forming the JSON array.",
+      "description": "Collect the individual answers from Task 3, Task 4, Task 5, and Task 6. Combine these answers into a single JSON array of strings. The order of the elements in the array must correspond to the original question order (Q1, Q2, Q3, Q4). Numeric results (from Task 3 and Task 5) must be converted to strings.",
       "information_needed": {
-        "answer_q1": "Result from Task 3 (integer)",
+        "answer_q1": "Result from Task 3 (integer, to be converted to string)",
         "answer_q2": "Result from Task 4 (string)",
-        "answer_q3": "Result from Task 5 (float)",
-        "answer_q4_image": "Result from Task 6 (base-64 encoded image string)"
+        "answer_q3": "Result from Task 5 (float, to be converted to string)",
+        "answer_q4_image": "Result from Task 6 (base-64 encoded image data URI string)"
       },
       "files_for_reference": [
-        "result_q1_count.txt",
-        "result_q2_film_name.txt",
-        "result_q3_correlation.txt",
-        "result_q4_plot_base64.txt"
+        "q1_2bn_movies_before_2020.txt",
+        "q2_earliest_1_5bn_film_title.txt",
+        "q3_rank_peak_correlation.txt",
+        "q4_scatterplot_image_data_uri.txt"
       ],
       "output_file_name": "final_answers.json"
     }

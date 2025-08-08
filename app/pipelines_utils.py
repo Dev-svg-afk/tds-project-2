@@ -1,8 +1,6 @@
 import os
 import subprocess
 from fastapi import UploadFile, HTTPException
-import glob
-import json
 
 from llm_utils import call_gpt, call_gemini
 from get_metadata import summarize_csv, summarize_json, summarize_text
@@ -31,66 +29,13 @@ async def break_tasks(file: UploadFile):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
-async def write_first_code(task):
-
-    # shutil.rmtree("codes", ignore_errors=True) #dangerous
-
-    writing_code_file = os.path.join("prompts", "writing_first_code.txt")
-
-    with open(writing_code_file, "r") as f:
-        writing_code_prompt = f.read()
-
-    prompt = f"{writing_code_prompt}\n{task}"
-    
-    response = await call_gpt(prompt)
-
-    file_path = f"codes/task{task['id']}/code0.py"
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-    with open(file_path, "w", encoding="utf-8") as code_file:
-        code = '\n'.join(response.splitlines()[1:-1])
-        code_file.write(code)
-
-    return {
-        "file_path": file_path,
-    }
-
-async def write_code_old(task,ref_file_path=None,structure_file=None):
-    writing_code_file = os.path.join("prompts", "writing_code.txt")
-
-    with open(writing_code_file, "r") as f:
-        writing_code_prompt = f.read()
-
-    with open(structure_file, "r", encoding="utf-8") as f:
-        ref_file_structure = json.load(f)
-
-    prompt = f"{writing_code_prompt}\n{task}\nReferenceFile:{ref_file_path}\nStructure:{ref_file_structure}"
-
-    response = await call_gpt(prompt)
-    
-    file_path = f"codes/task{task['id']}/code0.py"
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-    with open(file_path, "w", encoding="utf-8") as code_file:
-        code = '\n'.join(response.splitlines()[1:-1])
-        code_file.write(code)
-
-    return {
-        "file_path": file_path,
-    }
-
-async def write_code(task,all_metadata):
+async def write_code(task,metadata=None):
     writing_prompt_file = os.path.join("prompts", "writing_code.txt")
 
     with open(writing_prompt_file, "r") as f:
         writing_prompt = f.read()
 
-    if task["files_for_reference"]:
-        metadata = [
-            {key: value}
-            for key, value in all_metadata.items()
-            if key in task["files_for_reference"]
-        ]
+    if metadata:
         prompt = f"{writing_prompt}\n{task}\nFile structures:{metadata}"
 
     else:
@@ -98,11 +43,13 @@ async def write_code(task,all_metadata):
 
     response = await call_gpt(prompt)
     
+    code = await include_dependencies(response)
+
     file_path = f"codes/task{task['id']}/code0.py"
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
     with open(file_path, "w", encoding="utf-8") as code_file:
-        code = '\n'.join(response.splitlines()[1:-1])
+        # code = '\n'.join(response.splitlines()[1:-1])
         code_file.write(code)
 
     return {
@@ -131,47 +78,10 @@ async def execute_code(file_path: str):
             "returncode": e.returncode
         }
     
-async def debug_first_code(task, code_file_path:str, error: str, i: int = 1):
-    
-    debug_prompt = os.path.join("prompts", "debug_first_code.txt")
-    output_file_path = os.path.join("codes", f"task{task['id']}", f"code{i}.py")
+async def debug_code(task, code_file_path: str, error: str, i: int = 1, metadata=None):
+    # if "ImportError:" in error or "ModuleNotFoundError:" in error:
 
-    with open(code_file_path, "r", encoding="utf-8") as code_file:
-        code = code_file.read()
 
-    with open(debug_prompt, "r", encoding="utf-8") as debug_file:
-        debug_prompt = debug_file.read().strip()
-
-    response = await call_gpt(f"{debug_prompt}\nTask:\n{task}\nCode:\n{code}\nError:\n{error}")
-
-    with open(output_file_path, "w", encoding="utf-8") as code_file:
-        code = '\n'.join(response.splitlines()[1:-1])
-        code_file.write(code)
-
-    return {"message": f"Debugged code saved to {output_file_path}"}
-
-async def debug_code_old(task, code_file_path: str, error: str, i: int = 1, ref_file_path=None, structure_file=None):
-    debug_prompt = os.path.join("prompts", "debug_code.txt")
-    output_file_path = os.path.join("codes", f"task{task['id']}", f"code{i}.py")
-
-    with open(code_file_path, "r", encoding="utf-8") as code_file:
-        code = code_file.read()
-
-    with open(debug_prompt, "r", encoding="utf-8") as debug_file:
-        debug_prompt = debug_file.read().strip()
-
-    with open(structure_file, "r", encoding="utf-8") as f:
-        ref_file_structure = json.load(f)
-
-    response = await call_gpt(f"{debug_prompt}\nCode:\n{code}\nError:\n{error}\nTask:\n{task}\nReference File: {ref_file_path}\nStructure: {ref_file_structure}")
-
-    with open(output_file_path, "w", encoding="utf-8") as code_file:
-        code = '\n'.join(response.splitlines()[1:-1])
-        code_file.write(code)
-
-    return {"message": f"Debugged code saved to {output_file_path}"}
-
-async def debug_code(task, all_metadata, code_file_path: str, error: str, i: int = 1):
     debug_prompt_path = os.path.join("prompts", "debug_code.txt")
     output_file_path = os.path.join("codes", f"task{task['id']}", f"code{i}.py")
 
@@ -181,21 +91,20 @@ async def debug_code(task, all_metadata, code_file_path: str, error: str, i: int
     with open(debug_prompt_path, "r", encoding="utf-8") as debug_file:
         debug_prompt = debug_file.read().strip()
 
-    if task["files_for_reference"]:
-        metadata = [
-            {key: value}
-            for key, value in all_metadata.items()
-            if key in task["files_for_reference"]
-        ]
-        prompt = f"{debug_prompt}\nCode:\n{code}\nError:\n{error}\nTask:\n{task}\nFile structures:{metadata}"
+    error_explained = await explain_error(code_file_path, error)
+
+    if metadata:
+        prompt = f"{debug_prompt}\nCode:\n{code}\nError:\n{error}\nTask:\n{task}\nFile structures:{metadata}\nSuggested fix:{error_explained}"
 
     else:
-        prompt = f"{debug_prompt}\nCode:\n{code}\nError:\n{error}\nTask:\n{task}"
+        prompt = f"{debug_prompt}\nCode:\n{code}\nError:\n{error}\nTask:\n{task}\nSuggested fix:{error_explained}"
 
     response = await call_gpt(prompt)
 
+    code = await include_dependencies(response)
+
     with open(output_file_path, "w", encoding="utf-8") as code_file:
-        code = '\n'.join(response.splitlines()[1:-1])
+        # code = '\n'.join(response.splitlines()[1:-1])
         code_file.write(code)
 
     return {"message": f"Debugged code saved to {output_file_path}"}
@@ -251,16 +160,9 @@ async def get_metadata(file_name:str):
         else:
             metadata = "file contents unknown"
     else:
-        metadata = "caution: file does not exist"
+        metadata = "file does not exist"
 
     return metadata
-    
-    # metadata_file = "basicStructure.json"
-
-    # with open(metadata_file, "w", encoding="utf-8") as f:
-    #     f.write(metadata)
-
-    # return {"message": "Metadata generated successfully"}
 
 async def modify_task(task, metadata):
     modify_task_file = os.path.join("prompts", "modify_task.txt")
@@ -272,4 +174,15 @@ async def modify_task(task, metadata):
 
     response = await call_gemini(prompt)
 
+    return response
+
+async def include_dependencies(response,error=None):
+
+    promp_file = os.path.join("prompts", "include_dependencies.txt")
+
+    with open(promp_file, "r") as f:
+        prompt = f.read()
+
+    response = await call_gemini(f"{prompt}\n{response}")
+    
     return response

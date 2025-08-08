@@ -1,6 +1,0 @@
-{
-  "id": 6,
-  "name": "Generate Scatterplot with Regression Line",
-  "description": "Create a scatterplot where column '0' is on one axis and column '3' is on the other. Label the axis using column '0' as 'Rank' and the axis using column '3' as 'Peak'. Overlay a dotted red regression line through the data points. The resulting plot image must be returned as a base-64 encoded data URI in PNG format (e.g., `data:image/png;base64,...`) and its size must be under 100,000 bytes. Ensure appropriate axis labels are present.",
-  "information_needed": {}
-}

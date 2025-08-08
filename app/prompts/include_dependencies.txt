@@ -1,0 +1,15 @@
+Inlcude a dependencies script for the given code so that it can run with "uv run ..."
+Format:
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#    "dependency1",
+#    "dependency2",
+#    "dependency3",
+#    ...
+# ]
+# ///
+Just return the modified python code, do not include comments or explanations of any sort.
+Two important points to take care of:
+1. Only list dependencies that 'uv' requires, which means, do not include dependencies that are part of Python’s standard library.
+2. Do not change the structure of the code, just add the dependencies script at the top.

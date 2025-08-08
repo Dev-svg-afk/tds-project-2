@@ -1,5 +1,4 @@
 You are given a task and a file structure. 
 An LLM is going to operate on the task.
-Modify the task so that the LLM follows the file structure better.
+Modify the task so that the LLM follows the file structure.
 Do not include any additional information or comments, just the modified task.
-If the task seems to be already following the file structure, return the task as is.

@@ -1,14 +1,5 @@
 Debug this python code. Pay close attention to the error message.
 Just write the python code, do not include comments or explanations of any sort.
-Include uv script in the beginning of the code in the following format.
-example: 
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-#   "dependency1",
-#   "dependency1",
-#   "dependency1",
-# ]
-# ///
+Include all necessary imports in the file.
 Do not make up data, stick true to the data source.
 Save the result in output_file_name.
