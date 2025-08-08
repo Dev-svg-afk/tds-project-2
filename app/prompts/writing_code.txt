@@ -1,4 +1,4 @@
-Write python code for the following.
+Write python code for the following task.
 Just write the python code, do not include comments or explanations of any sort.
 Include uv script in the beginning of the code in the following format.
 example: 
@@ -11,6 +11,4 @@ example:
 # ]
 # ///
 Do not make up data, stick true to the data source.
-Strictly follow "important_info".
-Save the result in the file "result{id}.{relevant extension}"
-Save the metadata of the data stored in result{id} into the file "metadata.{relevant extension}"
+Save the result in output_file_name.

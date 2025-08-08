@@ -32,10 +32,23 @@ async def call_gpt(prompt: str) -> str:
         return f"Unexpected error: {str(e)}"
 
 
-async def call_gemini(prompt: str, model: str = "gemini-2.5-flash"):
+import google.generativeai as genai
+from fastapi import HTTPException
+
+async def call_gemini(prompt: str, model: str = "gemini-2.5-flash") -> str:
     try:
         response = genai.GenerativeModel(model).generate_content(prompt)
-        return response.text
+
+        # Make sure there's at least one candidate with content
+        if not response.candidates:
+            raise ValueError("Gemini returned no candidates.")
+
+        content = response.candidates[0].content
+        if not content.parts:
+            raise ValueError("Gemini response has no parts.")
+
+        return content.parts[0].text
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 

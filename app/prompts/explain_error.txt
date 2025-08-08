@@ -1,0 +1,2 @@
+You are given a code with the error occuring while executing it.
+Write a short and crisp explanation of the error for an llm to understand what to focus on.
