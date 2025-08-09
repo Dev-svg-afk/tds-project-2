@@ -48,7 +48,7 @@ async def call_gemini(prompt: str, model: str = "gemini-2.5-flash") -> str:
     except Exception as e:
         return {"error": str(e)}
 
-async def count_tokens(prompt: str, model: str = "gpt-4o-mini"):
+def count_tokens(prompt: str, model: str = "gpt-4o-mini"):
     encoding = tiktoken.encoding_for_model(model)
     num_tokens = len(encoding.encode(prompt))
     return num_tokens

@@ -1,0 +1,9 @@
+You are given a code and the error that occurs while executing it.
+Modify only the script part, i.e:
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [ ...
+# ]
+# ///
+# Your task is to include a dependencies script for the given code so that it can run with "uv run ...".
+# Just return the modified python code, do not include comments or explanations of any sort.

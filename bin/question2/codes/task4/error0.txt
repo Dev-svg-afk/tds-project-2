@@ -1,0 +1,15 @@
+Installed 4 packages in 5.96s
+Traceback (most recent call last):
+  File "C:\Dev\Code\iitm\tld\tds-proj-2-cloned\app\codes\task4\code0.py", line 11, in <module>
+    data = pd.read_parquet('court_33_10_delay_data.parquet')
+  File "C:\Users\devar\AppData\Local\uv\cache\environments-v2\code0-6e17550ef16ffcde\Lib\site-packages\pandas\io\parquet.py", line 653, in read_parquet
+    impl = get_engine(engine)
+  File "C:\Users\devar\AppData\Local\uv\cache\environments-v2\code0-6e17550ef16ffcde\Lib\site-packages\pandas\io\parquet.py", line 68, in get_engine
+    raise ImportError(
+    ...<7 lines>...
+    )
+ImportError: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors:
+ - Missing optional dependency 'pyarrow'. pyarrow is required for parquet support. Use pip or conda to install pyarrow.
+ - Missing optional dependency 'fastparquet'. fastparquet is required for parquet support. Use pip or conda to install fastparquet.

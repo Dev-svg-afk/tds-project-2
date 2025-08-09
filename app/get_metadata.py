@@ -28,11 +28,27 @@ def summarize_json(path):
     return json.dumps(summary, indent=2)
 
 def summarize_text(path):
-    with open(path, encoding="utf-8") as f:
-        content = f.read()
+    encodings_to_try = ["utf-8", "cp1252"]
+    content = None
+    used_encoding = None
+
+    for enc in encodings_to_try:
+        try:
+            with open(path, encoding=enc) as f:
+                content = f.read()
+                used_encoding = enc
+                break
+        except UnicodeDecodeError:
+            continue
+
+    if content is None:
+        with open(path, encoding="utf-8", errors="replace") as f:
+            content = f.read()
+            used_encoding = "utf-8 (errors replaced)"
 
     summary = {
         "type": "text",
+        "encoding_used": used_encoding,
         "length": len(content),
         "preview": content[:500]
     }

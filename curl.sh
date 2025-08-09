@@ -1,1 +1,1 @@
-curl -X POST "http://localhost:8000/api" -F "file=@questions/question1.txt"
+curl -X POST "http://localhost:8000/api" -F "file=@questions/question2.txt"

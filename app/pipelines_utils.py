@@ -11,7 +11,7 @@ async def break_tasks(file: UploadFile):
         task = contents.decode("utf-8")
 
         task_breakdown_file = os.path.join("prompts", "task_breakdown.txt")
-         
+   
         with open(task_breakdown_file, "r") as f:   
             task_breakdown_prompt = f.read().strip()
 
@@ -45,11 +45,12 @@ async def write_code(task,metadata=None):
     
     code = await include_dependencies(response)
 
+    code = await quick_format(code)
+
     file_path = f"codes/task{task['id']}/code0.py"
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
     with open(file_path, "w", encoding="utf-8") as code_file:
-        # code = '\n'.join(response.splitlines()[1:-1])
         code_file.write(code)
 
     return {
@@ -79,8 +80,6 @@ async def execute_code(file_path: str):
         }
     
 async def debug_code(task, code_file_path: str, error: str, i: int = 1, metadata=None):
-    # if "ImportError:" in error or "ModuleNotFoundError:" in error:
-
 
     debug_prompt_path = os.path.join("prompts", "debug_code.txt")
     output_file_path = os.path.join("codes", f"task{task['id']}", f"code{i}.py")
@@ -99,12 +98,16 @@ async def debug_code(task, code_file_path: str, error: str, i: int = 1, metadata
     else:
         prompt = f"{debug_prompt}\nCode:\n{code}\nError:\n{error}\nTask:\n{task}\nSuggested fix:{error_explained}"
 
-    response = await call_gpt(prompt)
 
-    code = await include_dependencies(response)
+    if "ImportError:" in error or "ModuleNotFoundError:" in error:
+        code = await debug_dependencies(code,error.strip().split("\n")[-1])
+    else:
+        response = await call_gpt(prompt)        
+        code = await include_dependencies(response)
+
+    code = await quick_format(code)
 
     with open(output_file_path, "w", encoding="utf-8") as code_file:
-        # code = '\n'.join(response.splitlines()[1:-1])
         code_file.write(code)
 
     return {"message": f"Debugged code saved to {output_file_path}"}
@@ -176,13 +179,32 @@ async def modify_task(task, metadata):
 
     return response
 
-async def include_dependencies(response,error=None):
+async def include_dependencies(response):
 
     promp_file = os.path.join("prompts", "include_dependencies.txt")
 
     with open(promp_file, "r") as f:
         prompt = f.read()
-
+    
     response = await call_gemini(f"{prompt}\n{response}")
     
     return response
+
+async def debug_dependencies(response,error):
+
+    promp_file = os.path.join("prompts", "debug_dependencies.txt")
+
+    with open(promp_file, "r") as f:
+        prompt = f.read()
+
+    response = await call_gemini(f"{prompt}\n{response}\n{error}")
+    
+    return response
+
+async def quick_format(code):
+    if code.startswith("```"):
+        code = '\n'.join(code.splitlines()[1:])
+    if code.endswith("```"):
+        code = '\n'.join(code.splitlines()[:-1])
+    
+    return code
