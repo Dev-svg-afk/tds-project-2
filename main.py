@@ -103,15 +103,13 @@ async def analyze(all_metadata):
                         error_file.write(response["stderr"])  # FOR TESTING PURPOSES ONLY
 
             if response["returncode"] != 0:
-                return "Task processed unsuccessfully"
+                return "Task processed unsuccessfully"  # FOR TESTING PURPOSES ONLY
 
         if task["output_file_name"]:
             metadata = get_metadata(task["output_file_name"])
             all_metadata[task["output_file_name"]] = metadata
 
-    return {
-        "message": "All tasks processed successfully."
-    }
+    return tasks["tasks"][-1]["output_file_name"]
 
 # API Endpoints
 
@@ -122,11 +120,21 @@ async def root():
 @app.post("/api")
 async def api(request: Request):
     form = await request.form()
-    all_metadata = await setup(form)
-    # return all_metadata
-    response = await analyze(all_metadata)
-    return response
+    # all_metadata = await setup(form)
+    final_result = await analyze({})
 
+    # read the file with respect to its extension
+    output_file_name = final_result
+    _, ext = os.path.splitext(output_file_name)
+
+    if ext == ".json":
+        with open(output_file_name, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data
+    else:
+        with open(output_file_name, "r", encoding="utf-8") as f:
+            content = f.read()
+            return content
 
 if __name__ == "__main__":
     import uvicorn

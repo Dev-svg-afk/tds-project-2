@@ -1,3 +1,8 @@
 .env
 .env.*
 file.md
+curl.sh
+bin/
+tools/
+tasks.json
+questions/
