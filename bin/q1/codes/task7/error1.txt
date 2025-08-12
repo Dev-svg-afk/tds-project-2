@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "C:\Dev\Code\iitm\tld\tds-proj-2-cloned\app\codes\task7\code1.py", line 9, in <module>
-    answer_q1 = str(q1_result['length'])
-                    ~~~~~~~~~^^^^^^^^^^
-TypeError: 'int' object is not subscriptable
