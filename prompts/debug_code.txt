@@ -3,4 +3,4 @@ Just write the python code, do not include comments or explanations of any sort.
 Include all necessary imports in the file.
 Do not make up data, stick true to the data source.
 Save the result in output_file_name.
-If saving a base64, please save it like this in the output_file_name: data:...base64, <base64_data>
+If saving a base64, please save it as "data:image/..." in a txt file

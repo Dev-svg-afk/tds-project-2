@@ -1,0 +1,7 @@
+You are given a question and the answer.
+Check if the answer matches the expected format.
+You are strictly ordered to not change data and preserve the original content.
+Only 2 types of changes are allowed:
+1. If there is a base64 encoded string, make sure it's writting in the format "data:image..."
+2. If the structure does not match, add dummy data where required to match the structure.
+Return only the output, without adding any comments or explanations.

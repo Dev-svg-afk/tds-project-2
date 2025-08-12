@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import aiofiles
 from pathlib import Path
+import json
 
 
 from services.llm_utils import call_llm
@@ -244,14 +245,6 @@ async def debug_new(task, code_file_path:str, error: str, i: int = 1):
 
     return {"message": f"Debugged code saved to {output_file_path}"}
 
-def quick_format(code):
-    if code.startswith("```"):
-        code = '\n'.join(code.splitlines()[1:])
-    if code.endswith("```"):
-        code = '\n'.join(code.splitlines()[:-1])
-    
-    return code
-
 def get_image_base64(image_path):
     import base64
     import mimetypes
@@ -289,3 +282,32 @@ async def get_image_data(task,metadata):
             metadata[image] = image_data
 
     return metadata
+
+def final_check(file):
+    _, ext = os.path.splitext(file)
+
+    if ext == ".json":
+        with open(file, "r", encoding="utf-8") as f:
+            content = json.load(f)
+    else:
+        with open(file, "r", encoding="utf-8") as f:
+            content = f.read()
+            
+    return content
+    # with open("questions.txt", "r", encoding="utf-8") as f:
+    #     questions = f.read()
+
+    # with open("prompts/final_check.txt", "r", encoding="utf-8") as f:
+    #     final_check_prompt = f.read()
+
+    # prompt = f"{final_check_prompt}\nQuestion:\n{questions}\nAnswer:\n{content}"
+
+    # response = await call_llm(prompt, "gemini", "gemini-2.5-pro")
+
+def quick_format(code):
+    if code.startswith("```"):
+        code = '\n'.join(code.splitlines()[1:])
+    if code.endswith("```"):
+        code = '\n'.join(code.splitlines()[:-1])
+    
+    return code

@@ -20,9 +20,11 @@
 #   "scipy",
 #   "matplotlib",
 #   "lxml",
-#   "sentence-transformers",
 # ]
 # ///
+
+# install later
+#   "sentence-transformers",
 
 import os
 import json
@@ -30,7 +32,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import google.generativeai as genai
-from services.pipelines_utils import setup, write_code, execute_code, debug_code, get_metadata, modify_task
+from services.pipelines_utils import setup, write_code, execute_code, debug_code, get_metadata, modify_task, final_check
 
 load_dotenv()
 
@@ -54,7 +56,6 @@ app.add_middleware(
 
 
 async def analyze(all_metadata):
-
     try:
         with open("tasks.json", "r", encoding="utf-8") as resp_file:
             tasks = json.load(resp_file)
@@ -121,19 +122,9 @@ async def root():
 async def api(request: Request):    
     form = await request.form()
     all_metadata = await setup(form)
-    final_result = await analyze(all_metadata)
-    output_file_name = final_result
+    final_file = await analyze(all_metadata)
+    return final_check(final_file)
 
-    _, ext = os.path.splitext(output_file_name)
-
-    if ext == ".json":
-        with open(output_file_name, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            return data
-    else:
-        with open(output_file_name, "r", encoding="utf-8") as f:
-            content = f.read()
-            return content
 
 if __name__ == "__main__":
     import uvicorn

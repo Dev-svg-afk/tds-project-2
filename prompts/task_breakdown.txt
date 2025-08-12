@@ -49,3 +49,4 @@ Example Output (this is only a sample output):
 }
 
 Important Note: This is only a sample question and output. Please use the provided structure and adapt it to your specific use case.
+"output_file_name" should never be an image file. if an image is specified, a base64 url must be stored in a txt file

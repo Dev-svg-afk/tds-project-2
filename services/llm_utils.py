@@ -135,13 +135,16 @@ async def call_gemini(prompt: str, model: str = "gemini-2.5-flash") -> CommonRet
             "type": "UnexpectedError"
         }
 
-async def call_llm(prompt: str, llm:str) -> Union[str, CommonReturn]:
+async def call_llm(prompt: str, llm:str, model:str = "gemini-2.5-flash") -> Union[str, CommonReturn]:
 
     if llm == "gemini":
 
-        result = await call_gemini(prompt)
+        result = await call_gemini(prompt, model=model)
 
         if "error" in result:
+            print("gemini crashed")
+            return # ONLY FOR DEV
+
             result = await call_gpt(prompt)
 
         if "error" not in result:
@@ -149,13 +152,16 @@ async def call_llm(prompt: str, llm:str) -> Union[str, CommonReturn]:
         
     else:
 
-        result = await call_gpt(prompt)
+        result = await call_gpt(prompt)        
 
         if "error" in result:
+            print("gpt crashed")
+            return # ONLY FOR DEV
+
             if result["type"] == "HTTPError":
                 result = await call_gpt(prompt)
             if "error" in result:
-                result = await call_gemini(prompt)
+                await call_gemini(prompt, model=model)
 
         if "error" not in result:
             return result["content"]
