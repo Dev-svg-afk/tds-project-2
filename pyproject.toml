@@ -1,0 +1,25 @@
+[project]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "python-dotenv",
+    "google-generativeai",
+    "python-multipart",
+    "httpx",
+    "beautifulsoup4",
+    "playwright",
+    "pandas",
+    "asyncio",
+    "tiktoken",
+    "pydantic",
+    "aiofiles",
+    "pillow",
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "lxml",
+    "duckdb",
+    "networkx",
+    "seaborn"
+]

@@ -25,7 +25,7 @@ async def setup(files):
 
     combined_prompt = f"{task_breakdown_prompt}\nTask to analyze:\n{questions_txt}"
 
-    # runs in background
+    print("calling gemini to create tasks")
     gemini_task = asyncio.create_task(call_llm(combined_prompt, "gemini"))
 
     all_metadata = await warmup(files, file_names)
@@ -56,6 +56,7 @@ async def warmup(files,file_names):
 
             all_metadata[file] = get_metadata(file)
 
+    print("all files set up")
     return all_metadata
 
 def get_metadata(file_name:str):
@@ -93,6 +94,7 @@ async def modify_task(task, metadata):
 
     prompt = f"{modify_task_prompt}\n{task}\nStructure:{metadata}"
 
+    print(f"modifying task")
     response = await call_llm(prompt, "gemini")
 
     return response
@@ -109,6 +111,7 @@ async def write_code(task,metadata=None):
     else:
         prompt = f"{writing_prompt}\n{task}"
 
+    print(f"writing code for task {task['id']}")
     response = await call_llm(prompt, "gpt")
 
     code = await include_dependencies(response)
@@ -132,11 +135,13 @@ async def include_dependencies(response):
     with open(promp_file, "r") as f:
         prompt = f.read()
 
+    print(f"including deps")
     response = await call_llm(f"{prompt}\n{response}", "gpt")
 
     return response
 
 async def execute_code(file_path: str):
+    print(f"running {file_path}")
     try:
         project_root = Path(__file__).resolve().parent.parent  # points to maindir
         result = subprocess.run(
@@ -175,6 +180,7 @@ async def explain_error(code_file_path:str, error: str):
     prompt = f"{explain_error_prompt}\nCode:\n{code}\nError:\n{error}"
 
     # response = await call_llm(prompt, "gemini")
+    print(f"explaining error")
     response = await call_llm(prompt, "gpt")
 
     return response
@@ -199,6 +205,7 @@ async def debug_code(task, code_file_path: str, error: str, i: int = 1, metadata
         prompt = f"{debug_prompt}\nCode:\n{code}\nError:\n{error}\nTask:\n{task}\nSuggested fix:{error_explained}"
 
 
+    print(f"debugging code for task {task['id']}")
     if "ImportError:" in error or "ModuleNotFoundError:" in error:
         code = await debug_dependencies(code,error.strip().split("\n")[-1])
     else:

@@ -20,11 +20,11 @@
 #   "scipy",
 #   "matplotlib",
 #   "lxml",
+#   "duckdb",
+#   "networkx",
+#   "seaborn",
 # ]
 # ///
-
-# install later
-#   "sentence-transformers",
 
 import os
 import json
@@ -94,17 +94,17 @@ async def analyze(all_metadata):
         if response["returncode"] != 0:
             i = 0
             with open(f"codes/task{task['id']}/error{i}.txt", "w", encoding="utf-8") as error_file:
-                error_file.write(response["stderr"])  # FOR TESTING PURPOSES ONLY
+                error_file.write(response["stderr"])
             while response["returncode"] != 0 and i < 2:
                 i += 1
                 response = await debug_code(task, f"codes/task{task['id']}/code{i-1}.py", response["stderr"], i, metadata)
                 response = await execute_code(f"codes/task{task['id']}/code{i}.py")
                 if response["returncode"] != 0:
                     with open(f"codes/task{task['id']}/error{i}.txt", "w", encoding="utf-8") as error_file:
-                        error_file.write(response["stderr"])  # FOR TESTING PURPOSES ONLY
+                        error_file.write(response["stderr"])
 
-            if response["returncode"] != 0:
-                return "Task processed unsuccessfully"  # FOR TESTING PURPOSES ONLY
+            # if response["returncode"] != 0:
+            #     return "Task processed unsuccessfully"  # FOR TESTING PURPOSES ONLY
 
         if task["output_file_name"]:
             metadata = get_metadata(task["output_file_name"])
@@ -128,7 +128,14 @@ async def api(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    import json
-    print("Starting server at http://0.0.0.0:8000")
-    uvicorn.run("main:app", host="0.0.0.0", port=8000)
+    import os
+    port = int(os.environ.get("PORT", 8000))
+    print(f"Starting server at http://0.0.0.0:{port}")
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
+
+# if __name__ == "__main__":
+#     import uvicorn
+#     import json
+#     print("Starting server at http://0.0.0.0:8000")
+#     uvicorn.run("main:app", host="0.0.0.0", port=8000)
     

@@ -143,7 +143,6 @@ async def call_llm(prompt: str, llm:str, model:str = "gemini-2.5-flash") -> Unio
 
         if "error" in result:
             print("gemini crashed")
-            return # ONLY FOR DEV
 
             result = await call_gpt(prompt)
 
@@ -156,7 +155,6 @@ async def call_llm(prompt: str, llm:str, model:str = "gemini-2.5-flash") -> Unio
 
         if "error" in result:
             print("gpt crashed")
-            return # ONLY FOR DEV
 
             if result["type"] == "HTTPError":
                 result = await call_gpt(prompt)
