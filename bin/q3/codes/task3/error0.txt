@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "C:\Dev\Code\iitm\tld\tds-proj-2-cloned\app\codes\task3\code0.py", line 11, in <module>
+    top_region = data.groupby('Region')['Sales'].sum().idxmax()
+                 ~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\devar\AppData\Local\uv\cache\environments-v2\code0-f3964885703cdee9\Lib\site-packages\pandas\core\frame.py", line 9190, in groupby
+    return DataFrameGroupBy(
+        obj=self,
+    ...<7 lines>...
+        dropna=dropna,
+    )
+  File "C:\Users\devar\AppData\Local\uv\cache\environments-v2\code0-f3964885703cdee9\Lib\site-packages\pandas\core\groupby\groupby.py", line 1330, in __init__
+    grouper, exclusions, obj = get_grouper(
+                               ~~~~~~~~~~~^
+        obj,
+        ^^^^
+    ...<5 lines>...
+        dropna=self.dropna,
+        ^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\devar\AppData\Local\uv\cache\environments-v2\code0-f3964885703cdee9\Lib\site-packages\pandas\core\groupby\grouper.py", line 1043, in get_grouper
+    raise KeyError(gpr)
+KeyError: 'Region'

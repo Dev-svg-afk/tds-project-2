@@ -1,4 +1,5 @@
 import json
+from PIL import Image
 
 def summarize_csv(path):
     import pandas as pd
@@ -54,3 +55,17 @@ def summarize_text(path):
     }
 
     return json.dumps(summary, indent=2)
+
+def summarize_image(path):
+    try:
+        with Image.open(path) as img:
+            summary = {
+                "type": "image",
+                "format": img.format,
+                "mode": img.mode,
+                "size": img.size,
+                "info": img.info,
+            }
+            return json.dumps(summary, indent=2)
+    except Exception as e:
+        return json.dumps({"error": str(e)}, indent=2)

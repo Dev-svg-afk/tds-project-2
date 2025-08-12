@@ -16,19 +16,21 @@
 #   "langgraph",
 #   "langchain",
 #   "langchain-openai",
-#   "pydantic"
+#   "pydantic",
+#   "aiofiles",
+#   "pillow",
 # ]
 # ///
 
 import os
 import json
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import google.generativeai as genai
 from typing import List
 
-from pipelines_utils import break_tasks,write_code,execute_code,debug_code,get_metadata,modify_task
+from services.pipelines_utils import setup, write_code, execute_code, debug_code, get_metadata, modify_task
 
 load_dotenv()
 
@@ -38,7 +40,7 @@ try:
 
 except (ValueError, Exception) as e:
     print(f"Error initializing Gemini: {e}")
-    genai = None 
+    genai = None
 
 app = FastAPI(title="Gemini API with FastAPI")
 
@@ -51,17 +53,7 @@ app.add_middleware(
 )
 
 
-async def hunt():
-
-    # delete codes directory forcefully and completely
-    # return "are you sure you want to delete the codes directory?"
-    # if os.path.exists("codes"):
-    #     for root, dirs, files in os.walk("codes", topdown=False):
-    #         for name in files:
-    #             os.remove(os.path.join(root, name))
-    #         for name in dirs:
-    #             os.rmdir(os.path.join(root, name))
-    #     os.rmdir("codes")
+async def analyze(all_metadata):
 
     try:
         with open("tasks.json", "r", encoding="utf-8") as resp_file:
@@ -70,12 +62,11 @@ async def hunt():
         raise HTTPException(status_code=404, detail="tasks.json not found.")
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="Error decoding tasks.json.")
-    
 
-    all_metadata = {}
-    metadata = []
 
     for task in tasks["tasks"]:
+        
+        metadata = []
 
         if task["files_for_reference"]:
 
@@ -115,7 +106,7 @@ async def hunt():
                 return "Task processed unsuccessfully"
 
         if task["output_file_name"]:
-            metadata = await get_metadata(task["output_file_name"])
+            metadata = get_metadata(task["output_file_name"])
             all_metadata[task["output_file_name"]] = metadata
 
     return {
@@ -129,13 +120,22 @@ async def root():
     return {"Server": "Healthy"}
 
 @app.post("/api")
-async def api(files: List[UploadFile] = File(...)):
-    # response = await break_tasks(file)
-    response = await hunt()
+async def api(request: Request):
+    form = await request.form()
+    all_metadata = await setup(form)
+    # return all_metadata
+    response = await analyze(all_metadata)
     return response
+
 
 if __name__ == "__main__":
     import uvicorn
     import json
     print("Starting server at http://0.0.0.0:8000")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000)
+
+# if __name__ == "__main__":
+#     import uvicorn
+#     import json
+#     print("Starting server at http://0.0.0.0:8000")
+#     uvicorn.run("app.main:app", host="0.0.0.0", port=8000) # for production
