@@ -1,5 +1,6 @@
 import json
 from PIL import Image
+from bs4 import BeautifulSoup
 
 def summarize_csv(path):
     import pandas as pd
@@ -51,10 +52,34 @@ def summarize_text(path):
         "type": "text",
         "encoding_used": used_encoding,
         "length": len(content),
-        "preview": content[:500]
+        "preview": content[:100]
     }
 
     return json.dumps(summary, indent=2)
+
+def summarize_html(path):
+    try:
+        with open(path, encoding="utf-8") as f:
+            html = f.read()
+        soup = BeautifulSoup(html, "html.parser")
+
+        title = soup.title.string if soup.title else None
+        links = len(soup.find_all("a"))
+        images = len(soup.find_all("img"))
+        text = soup.get_text(separator=" ", strip=True)
+
+        summary = {
+            "type": "html",
+            "title": title,
+            "num_links": links,
+            "num_images": images,
+            "text_preview": text[:100],
+        }
+        return json.dumps(summary, indent=2)
+
+    except Exception as e:
+        return json.dumps({"error": str(e)}, indent=2)
+
 
 def summarize_image(path):
     try:

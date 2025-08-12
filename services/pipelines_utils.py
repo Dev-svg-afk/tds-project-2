@@ -1,38 +1,38 @@
 import os
 import asyncio
-from fastapi import UploadFile
-from typing import List
 import shutil
 import subprocess
 import aiofiles
+from pathlib import Path
+
 
 from services.llm_utils import call_llm
-from services.get_metadata import summarize_csv, summarize_json, summarize_text, summarize_image
+from services.get_metadata import summarize_csv, summarize_json, summarize_text, summarize_image, summarize_html
 
 async def setup(files):
-    # if not files:
-    #     raise ValueError("At least one file is required.")
+    if not files:
+        raise ValueError("At least one file is required.")
     file_names = [x for x,_ in (dict(files)).items()]
-    # file = files[file_names[0]]
-    # questions_txt = (await file.read()).decode("utf-8")
-    # with open("questions.txt", "w", encoding="utf-8") as f:
-    #     f.write(questions_txt)
+    file = files[file_names[0]]
+    questions_txt = (await file.read()).decode("utf-8")
+    with open("questions.txt", "w", encoding="utf-8") as f:
+        f.write(questions_txt)
 
-    # task_breakdown_file = os.path.join("prompts", "task_breakdown.txt")
-    # async with aiofiles.open(task_breakdown_file, "r", encoding="utf-8") as f:
-    #     task_breakdown_prompt = (await f.read()).strip()
+    task_breakdown_file = os.path.join("prompts", "task_breakdown.txt")
+    async with aiofiles.open(task_breakdown_file, "r", encoding="utf-8") as f:
+        task_breakdown_prompt = (await f.read()).strip()
 
-    # combined_prompt = f"{task_breakdown_prompt}\nTask to analyze:\n{questions_txt}"
+    combined_prompt = f"{task_breakdown_prompt}\nTask to analyze:\n{questions_txt}"
 
-    # # runs in background
-    # gemini_task = asyncio.create_task(call_llm(combined_prompt, "gemini"))
+    # runs in background
+    gemini_task = asyncio.create_task(call_llm(combined_prompt, "gemini"))
 
     all_metadata = await warmup(files, file_names)
 
-    # gemini_response = await gemini_task
+    gemini_response = await gemini_task
 
-    # with open("tasks.json", "w", encoding="utf-8") as resp_file:
-    #         resp_file.write('\n'.join(gemini_response.splitlines()[1:-1]))
+    with open("tasks.json", "w", encoding="utf-8") as resp_file:
+            resp_file.write('\n'.join(gemini_response.splitlines()[1:-1]))
 
     return all_metadata
 
@@ -70,8 +70,10 @@ def get_metadata(file_name:str):
             metadata = summarize_json(file_name)
         elif ext in [".txt", ".md"]:
             metadata = summarize_text(file_name)
-        elif ext.lower() in [".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".webp"]:
+        elif ext in [".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff", ".webp"]:
             metadata = summarize_image(file_name)
+        elif ext.lower() in [".html", ".htm"]:
+            metadata = summarize_html(file_name)
         else:
             metadata = "file contents unknown"
     else:
@@ -135,8 +137,13 @@ async def include_dependencies(response):
 
 async def execute_code(file_path: str):
     try:
+        project_root = Path(__file__).resolve().parent.parent  # points to maindir
         result = subprocess.run(
-            ["uv", "run", file_path],
+            [
+                "uv", "run",
+                "--directory", str(project_root),  # force use of maindir env
+                file_path
+            ],
             capture_output=True,
             text=True,
             check=True

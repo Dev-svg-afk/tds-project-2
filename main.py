@@ -13,23 +13,23 @@
 #   "asyncio",
 #   "httpx",
 #   "tiktoken",
-#   "langgraph",
-#   "langchain",
-#   "langchain-openai",
 #   "pydantic",
 #   "aiofiles",
 #   "pillow",
+#   "numpy",
+#   "scipy",
+#   "matplotlib",
+#   "lxml",
+#   "sentence-transformers",
 # ]
 # ///
 
 import os
 import json
-from fastapi import FastAPI, UploadFile, File, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import google.generativeai as genai
-from typing import List
-
 from services.pipelines_utils import setup, write_code, execute_code, debug_code, get_metadata, modify_task
 
 load_dotenv()
@@ -118,13 +118,12 @@ async def root():
     return {"Server": "Healthy"}
 
 @app.post("/api")
-async def api(request: Request):
+async def api(request: Request):    
     form = await request.form()
-    # all_metadata = await setup(form)
-    final_result = await analyze({})
-
-    # read the file with respect to its extension
+    all_metadata = await setup(form)
+    final_result = await analyze(all_metadata)
     output_file_name = final_result
+
     _, ext = os.path.splitext(output_file_name)
 
     if ext == ".json":
@@ -141,9 +140,4 @@ if __name__ == "__main__":
     import json
     print("Starting server at http://0.0.0.0:8000")
     uvicorn.run("main:app", host="0.0.0.0", port=8000)
-
-# if __name__ == "__main__":
-#     import uvicorn
-#     import json
-#     print("Starting server at http://0.0.0.0:8000")
-#     uvicorn.run("app.main:app", host="0.0.0.0", port=8000) # for production
+    
