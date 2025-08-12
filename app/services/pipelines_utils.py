@@ -129,7 +129,6 @@ async def include_dependencies(response):
     with open(promp_file, "r") as f:
         prompt = f.read()
 
-    # response = await call_llm(f"{prompt}\n{response}", "gemini")
     response = await call_llm(f"{prompt}\n{response}", "gpt")
 
     return response
@@ -212,8 +211,7 @@ async def debug_dependencies(response,error):
     with open(promp_file, "r") as f:
         prompt = f.read()
 
-    # response = await call_llm(f"{prompt}\n{response}\n{error}", "gemini")
-    response = await call_llm(f"{prompt}\n{response}", "gpt")
+    response = await call_llm(f"{prompt}\n{response}\n{error}", "gpt")
 
     return response
 
