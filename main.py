@@ -119,7 +119,8 @@ async def root():
     return {"Server": "Healthy"}
 
 @app.post("/api")
-async def api(request: Request):    
+async def api(request: Request): 
+    return request 
     form = await request.form()
     all_metadata = await setup(form)
     final_file = await analyze(all_metadata)
