@@ -120,9 +120,9 @@ async def root():
 
 @app.post("/api")
 async def api(request: Request): 
+    if not request:
+        return {"error": "No request received"}
     form = await request.form()
-    if not form:
-        return {"error": "No form data provided"}
     all_metadata = await setup(form)
     final_file = await analyze(all_metadata)
     return final_check(final_file)
