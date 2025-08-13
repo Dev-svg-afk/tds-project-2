@@ -119,10 +119,12 @@ async def root():
     return {"Server": "Healthy"}
 
 @app.post("/api")
-async def api(request: Request): 
-    if not request:
-        return {"error": "No request received"}
+async def api(request: Request):
     form = await request.form()
+    body = await request.body()
+    print("RAW BODY:\n", body.decode(errors="ignore"))
+    return body
+
     all_metadata = await setup(form)
     final_file = await analyze(all_metadata)
     return final_check(final_file)
