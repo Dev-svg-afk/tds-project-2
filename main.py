@@ -128,9 +128,9 @@ async def api(request: Request):
 
 # local testing
 
-if __name__ == "__main__":
-    import uvicorn
-    import json
-    print("Starting server at http://0.0.0.0:8000")
-    uvicorn.run("main:app", host="0.0.0.0", port=8000)
+# if __name__ == "__main__":
+#     import uvicorn
+#     import json
+#     print("Starting server at http://0.0.0.0:8000")
+#     uvicorn.run("main:app", host="0.0.0.0", port=8000)
     
