@@ -121,9 +121,7 @@ async def root():
 @app.post("/api")
 async def api(request: Request):
     form = await request.form()
-    body = await request.body()
-    print("RAW BODY:\n", body.decode(errors="ignore"))
-    return body
+    return form
 
     all_metadata = await setup(form)
     final_file = await analyze(all_metadata)
