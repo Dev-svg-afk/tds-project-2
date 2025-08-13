@@ -5,7 +5,6 @@ google-generativeai
 python-multipart
 httpx
 beautifulsoup4
-playwright
 pandas
 tiktoken
 pydantic
