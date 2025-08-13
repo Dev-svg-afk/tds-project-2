@@ -126,12 +126,7 @@ async def api(request: Request):
     return final_check(final_file)
 
 
-if __name__ == "__main__":
-    import uvicorn
-    import os
-    port = int(os.environ.get("PORT", 8000))
-    print(f"Starting server at http://0.0.0.0:{port}")
-    uvicorn.run("main:app", host="0.0.0.0", port=port)
+# local testing
 
 # if __name__ == "__main__":
 #     import uvicorn
