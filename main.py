@@ -136,6 +136,7 @@ async def api(request: Request):
         form = await request.form()
         all_metadata = await setup(form)
         final_file = await analyze(all_metadata)
+        print("returning final result")
         return final_check(final_file)
 
 # local testing

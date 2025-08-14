@@ -180,7 +180,7 @@ async def explain_error(code_file_path:str, error: str):
     prompt = f"{explain_error_prompt}\nCode:\n{code}\nError:\n{error}"
 
     # response = await call_llm(prompt, "gemini")
-    print(f"explaining error")
+    print(f"suggesting fix")
     response = await call_llm(prompt, "gpt")
 
     return response
