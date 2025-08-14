@@ -120,7 +120,7 @@ async def analyze(all_metadata):
             metadata = get_metadata(task["output_file_name"])
             all_metadata[task["output_file_name"]] = metadata
 
-    return tasks["tasks"][-1]["output_file_name"]
+    return all_metadata,tasks["tasks"][-1]["output_file_name"]
 
 # API Endpoints
 
@@ -134,15 +134,14 @@ global_lock = asyncio.Lock()
 async def api(request: Request):
     async with global_lock:
         form = await request.form()
-        all_metadata = await setup(form)
-        final_file = await analyze(all_metadata)
-        print("returning final result")
-        return final_check(final_file)
+        # all_metadata = await setup(form)
+        # all_metadata,final_file = await analyze(all_metadata)
+        return await final_check("final_answers.json",form)
 
 # local testing
 
-# if __name__ == "__main__":
-#     import uvicorn
-#     import json
-#     print("Starting server at http://0.0.0.0:8000")
-#     uvicorn.run("main:app", host="0.0.0.0", port=8000)
+if __name__ == "__main__":
+    import uvicorn
+    import json
+    print("Starting server at http://0.0.0.0:8000")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000)

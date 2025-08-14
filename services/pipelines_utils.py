@@ -244,7 +244,7 @@ async def debug_new(task, code_file_path:str, error: str, i: int = 1):
     # error_explained = await explain_error(code_file_path, error)
     # return error_explained
 
-    response = await call_gpt(f"{debug_prompt}\nCode:\n{code}\nError:\n{error}")
+    response = await call_llm(f"{debug_prompt}\nCode:\n{code}\nError:\n{error}","gpt")
 
     with open(output_file_path, "w", encoding="utf-8") as code_file:
         code = '\n'.join(response.splitlines()[1:-1])
@@ -290,26 +290,27 @@ async def get_image_data(task,metadata):
 
     return metadata
 
-def final_check(file):
-    _, ext = os.path.splitext(file)
+async def final_check(output_file,files):
+    print("cooking final result")
+    if not os.path.exists(output_file):
+        with open("prompts/generate_dummy.txt", "r", encoding="utf-8") as f:
+            prompt = f.read().strip()
 
-    if ext == ".json":
-        with open(file, "r", encoding="utf-8") as f:
-            content = json.load(f)
+        file_names = [x for x,_ in (dict(files)).items()]
+        # open all files and read their contents
+        file_contents = {file: (await files[file].read()).decode("utf-8") for file in file_names}
+
+        response = await call_llm(f"{prompt}\nFiles with their contents:\n{file_contents}", "gemini", "gemini-2.5-pro")
+
+        response = quick_format(response)
+
+        final_json = json.loads(response)
+
     else:
-        with open(file, "r", encoding="utf-8") as f:
-            content = f.read()
-            
-    return content
-    # with open("questions.txt", "r", encoding="utf-8") as f:
-    #     questions = f.read()
+        with open(output_file, "r", encoding="utf-8") as f:
+            final_json = json.load(f)
 
-    # with open("prompts/final_check.txt", "r", encoding="utf-8") as f:
-    #     final_check_prompt = f.read()
-
-    # prompt = f"{final_check_prompt}\nQuestion:\n{questions}\nAnswer:\n{content}"
-
-    # response = await call_llm(prompt, "gemini", "gemini-2.5-pro")
+    return final_json
 
 def quick_format(code):
     if code.startswith("```"):
