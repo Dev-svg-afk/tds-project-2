@@ -32,7 +32,17 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import google.generativeai as genai
-from services.pipelines_utils import setup, write_code, execute_code, debug_code, get_metadata, modify_task, final_check
+import asyncio
+
+from services.pipelines_utils import (
+    setup,
+    modify_task,
+    write_code,
+    execute_code,
+    debug_code,
+    get_metadata,
+    final_check
+)
 
 load_dotenv()
 
@@ -118,13 +128,15 @@ async def analyze(all_metadata):
 async def root():
     return {"Server": "Healthy"}
 
+global_lock = asyncio.Lock()
+
 @app.post("/api")
 async def api(request: Request):
-    form = await request.form()
-    all_metadata = await setup(form)
-    final_file = await analyze(all_metadata)
-    return final_check(final_file)
-
+    async with global_lock:
+        form = await request.form()
+        all_metadata = await setup(form)
+        final_file = await analyze(all_metadata)
+        return final_check(final_file)
 
 # local testing
 
@@ -133,4 +145,3 @@ async def api(request: Request):
 #     import json
 #     print("Starting server at http://0.0.0.0:8000")
 #     uvicorn.run("main:app", host="0.0.0.0", port=8000)
-    
