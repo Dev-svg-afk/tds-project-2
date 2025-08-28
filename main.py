@@ -134,14 +134,15 @@ global_lock = asyncio.Lock()
 async def api(request: Request):
     async with global_lock:
         form = await request.form()
-        # all_metadata = await setup(form)
-        # all_metadata,final_file = await analyze(all_metadata)
-        return await final_check("final_answers.json",form)
+        all_metadata = await setup(form)
+        print("tasks created, analyzing...")
+        all_metadata,final_file = await analyze(all_metadata)
+        return await final_check(final_file,form)
 
 # local testing
 
-if __name__ == "__main__":
-    import uvicorn
-    import json
-    print("Starting server at http://0.0.0.0:8000")
-    uvicorn.run("main:app", host="0.0.0.0", port=8000)
+# if __name__ == "__main__":
+#     import uvicorn
+#     import json
+#     print("Starting server at http://0.0.0.0:8000")
+#     uvicorn.run("main:app", host="0.0.0.0", port=8000)

@@ -143,14 +143,15 @@ async def call_llm(prompt: str, llm:str, model:str = "gemini-2.5-flash") -> Unio
 
         if "error" in result:
             print("gemini crashed")
-
-            result = await call_gpt(prompt)
+            if model == "gemini-2.5-pro":
+                result = await call_gemini(prompt, model = "gemini-2.5-flash")
+            if "error" in result:
+                result = await call_gpt(prompt)
 
         if "error" not in result:
             return result["content"]
         
     else:
-
         result = await call_gpt(prompt)        
 
         if "error" in result:
